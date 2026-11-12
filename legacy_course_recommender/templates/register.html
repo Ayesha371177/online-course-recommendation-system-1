@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Register Account - CourseMatch{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-light d-flex align-items-center" style="min-height: 75vh;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-5 col-xl-4">
+
+                <!-- Register Card -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                    <div class="text-center mb-4">
+                        <div class="brand-icon d-inline-block mb-3 fs-3 p-3 rounded-circle">
+                            <i class="bi bi-person-plus-fill"></i>
+                        </div>
+                        <h3 class="fw-bold mb-1">Create Account</h3>
+                        <p class="text-muted small">Join CourseMatch to get personalized course recommendations.</p>
+                    </div>
+
+                    <form action="{{ url_for('register') }}" method="POST">
+                        <div class="mb-3">
+                            <label for="username" class="form-label small fw-bold">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0 ps-0" id="username" name="username"
+                                    value="{{ username or '' }}" required autofocus placeholder="e.g. dev_learner" minlength="3">
+                            </div>
+                            <div class="form-text small">At least 3 characters.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label small fw-bold">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
+                                <input type="email" class="form-control border-start-0 ps-0" id="email" name="email"
+                                    value="{{ email or '' }}" required placeholder="learner@example.com">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label small fw-bold">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" class="form-control border-start-0 ps-0" id="password" name="password" required placeholder="••••••••" minlength="6">
+                            </div>
+                            <div class="form-text small">At least 6 characters.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="confirm_password" class="form-label small fw-bold">Confirm Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0">
+                                    <i class="bi bi-shield-check"></i>
+                                </span>
+                                <input type="password" class="form-control border-start-0 ps-0" id="confirm_password" name="confirm_password" required placeholder="••••••••">
+                            </div>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg fw-semibold">
+                                <i class="bi bi-arrow-right-circle me-1"></i> Register Free
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center small text-muted">
+                        Already have an account?
+                        <a href="{{ url_for('login') }}" class="text-primary fw-semibold text-decoration-none">
+                            Log In
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

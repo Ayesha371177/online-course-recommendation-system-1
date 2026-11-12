@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Course Preferences & Questionnaire - CourseMatch{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9 col-xl-8">
+                <!-- Page Header -->
+                <div class="text-center mb-4">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold mb-2">
+                        <i class="bi bi-sliders me-1"></i> Recommendation Wizard
+                    </span>
+                    <h2 class="fw-bold mb-2">What Do You Want to Learn?</h2>
+                    <p class="text-muted">
+                        Customize your learning profile below. Our Machine Learning engine will map your goals to the most relevant courses.
+                    </p>
+                </div>
+
+                <div class="preference-card">
+                    <form action="{{ url_for('recommendations') }}" method="POST">
+                        
+                        <!-- 1. Subject Interests Multi-select -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label fw-bold mb-0 text-dark">
+                                    <i class="bi bi-tags-fill text-primary me-1"></i> 1. Select Interested Subjects / Domains:
+                                </label>
+                                <button type="button" id="select-all-interests" class="btn btn-sm btn-link text-decoration-none p-0 text-primary fw-semibold">
+                                    Select All
+                                </button>
+                            </div>
+                            <p class="text-muted small mb-3">Choose one or more subjects you want to focus on.</p>
+
+                            {% set all_subjects = [
+                                ('Python', 'bi-filetype-py'),
+                                ('Machine Learning', 'bi-robot'),
+                                ('Data Science', 'bi-bar-chart-line'),
+                                ('Web Development', 'bi-code-slash'),
+                                ('AI & Generative AI', 'bi-cpu'),
+                                ('Cloud Computing', 'bi-cloud-arrow-up'),
+                                ('Cybersecurity', 'bi-shield-check'),
+                                ('Java', 'bi-cup-hot'),
+                                ('Mobile Development', 'bi-phone'),
+                                ('Docker & Kubernetes', 'bi-box-seam'),
+                                ('UI/UX Design', 'bi-palette'),
+                                ('SQL & Databases', 'bi-database'),
+                                ('Business & Management', 'bi-briefcase'),
+                                ('DevOps', 'bi-gear-wide-connected'),
+                                ('C++', 'bi-terminal')
+                            ] %}
+
+                            {% set saved_interests_list = (user_prefs.interests.split(',')|map('trim')|list) if user_prefs and user_prefs.interests else [] %}
+
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for subject, icon in all_subjects %}
+                                    <label class="interest-checkbox-label">
+                                        <input type="checkbox" name="interests" value="{{ subject }}"
+                                            {% if subject in saved_interests_list %}checked{% endif %}>
+                                        <div class="interest-pill">
+                                            <i class="bi {{ icon }}"></i>
+                                            <span>{{ subject }}</span>
+                                        </div>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <hr class="my-4 text-muted opacity-25">
+
+                        <!-- 2. Skill Level -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold mb-2 text-dark">
+                                <i class="bi bi-speedometer2 text-primary me-1"></i> 2. What is Your Current Skill Level?
+                            </label>
+                            <p class="text-muted small mb-3">Helps match the right pace and assumed prerequisite knowledge.</p>
+
+                            {% set current_level = user_prefs.skill_level if user_prefs and user_prefs.skill_level else 'Beginner' %}
+
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="w-100 h-100">
+                                        <input type="radio" name="skill_level" value="Beginner" class="level-radio-input"
+                                            {% if current_level == 'Beginner' %}checked{% endif %}>
+                                        <div class="level-card">
+                                            <div class="text-success fs-3 mb-1"><i class="bi bi-seedling"></i></div>
+                                            <h6 class="fw-bold mb-1">Beginner</h6>
+                                            <small class="text-muted">Zero or minimal experience, step-by-step guidance</small>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="w-100 h-100">
+                                        <input type="radio" name="skill_level" value="Intermediate" class="level-radio-input"
+                                            {% if current_level == 'Intermediate' %}checked{% endif %}>
+                                        <div class="level-card">
+                                            <div class="text-warning fs-3 mb-1"><i class="bi bi-fire"></i></div>
+                                            <h6 class="fw-bold mb-1">Intermediate</h6>
+                                            <small class="text-muted">Know the basics, ready for real projects & APIs</small>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="w-100 h-100">
+                                        <input type="radio" name="skill_level" value="Advanced" class="level-radio-input"
+                                            {% if current_level == 'Advanced' %}checked{% endif %}>
+                                        <div class="level-card">
+                                            <div class="text-danger fs-3 mb-1"><i class="bi bi-trophy"></i></div>
+                                            <h6 class="fw-bold mb-1">Advanced</h6>
+                                            <small class="text-muted">Complex architectures, optimization, deep theory</small>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4 text-muted opacity-25">
+
+                        <!-- 3. Learning Goals & Target Skills (Free-form NLP Feature) -->
+                        <div class="mb-4">
+                            <label for="learning_goals" class="form-label fw-bold text-dark">
+                                <i class="bi bi-pencil-square text-primary me-1"></i> 3. Specific Learning Goals & Skills to Acquire:
+                            </label>
+                            <p class="text-muted small mb-2">
+                                Describe in your own words what you want to achieve or build. The TF-IDF model extracts key terms and matches them directly with course content.
+                            </p>
+                            <textarea class="form-control" id="learning_goals" name="learning_goals" rows="3"
+                                placeholder="e.g., I want to master neural networks with PyTorch and deploy computer vision models, or build full-stack web apps using React and Node.js.">{{ user_prefs.learning_goals if user_prefs and user_prefs.learning_goals else '' }}</textarea>
+                        </div>
+
+                        <hr class="my-4 text-muted opacity-25">
+
+                        <!-- 4. Platform and Difficulty Filters -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="preferred_platform" class="form-label fw-bold text-dark">
+                                    <i class="bi bi-display text-primary me-1"></i> Preferred Platform:
+                                </label>
+                                <select class="form-select" id="preferred_platform" name="preferred_platform">
+                                    <option value="All" {% if not user_prefs or user_prefs.preferred_platform == 'All' %}selected{% endif %}>All Platforms (Coursera, Udemy, edX)</option>
+                                    <option value="Coursera" {% if user_prefs and user_prefs.preferred_platform == 'Coursera' %}selected{% endif %}>Coursera</option>
+                                    <option value="Udemy" {% if user_prefs and user_prefs.preferred_platform == 'Udemy' %}selected{% endif %}>Udemy</option>
+                                    <option value="edX" {% if user_prefs and user_prefs.preferred_platform == 'edX' %}selected{% endif %}>edX</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="difficulty" class="form-label fw-bold text-dark">
+                                    <i class="bi bi-bar-chart-steps text-primary me-1"></i> Course Difficulty Filter:
+                                </label>
+                                <select class="form-select" id="difficulty" name="difficulty">
+                                    <option value="All" {% if not user_prefs or user_prefs.difficulty == 'All' %}selected{% endif %}>Any Difficulty Level</option>
+                                    <option value="Beginner" {% if user_prefs and user_prefs.difficulty == 'Beginner' %}selected{% endif %}>Beginner Only</option>
+                                    <option value="Intermediate" {% if user_prefs and user_prefs.difficulty == 'Intermediate' %}selected{% endif %}>Intermediate Only</option>
+                                    <option value="Advanced" {% if user_prefs and user_prefs.difficulty == 'Advanced' %}selected{% endif %}>Advanced Only</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- 5. Minimum Rating & Price Range -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="min_rating_range" class="form-label fw-bold text-dark d-flex justify-content-between">
+                                    <span><i class="bi bi-star-fill text-warning me-1"></i> Minimum Rating:</span>
+                                    <span id="min_rating_value" class="text-primary fw-bold">
+                                        {% if user_prefs and user_prefs.min_rating and user_prefs.min_rating > 0 %}
+                                            {{ user_prefs.min_rating }}+ Stars
+                                        {% else %}
+                                            Any Rating (0.0+)
+                                        {% endif %}
+                                    </span>
+                                </label>
+                                <input type="range" class="form-range" min="0" max="4.8" step="0.1"
+                                    id="min_rating_range" name="min_rating"
+                                    value="{{ user_prefs.min_rating if user_prefs and user_prefs.min_rating else 0 }}">
+                                <div class="d-flex justify-content-between text-muted small">
+                                    <span>Any (0.0)</span>
+                                    <span>4.0+</span>
+                                    <span>4.5+</span>
+                                    <span>4.8+</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="max_price" class="form-label fw-bold text-dark">
+                                    <i class="bi bi-currency-dollar text-success me-1"></i> Pricing Preference:
+                                </label>
+                                <select class="form-select" id="max_price" name="max_price">
+                                    <option value="All">All Prices</option>
+                                    <option value="0">Free Courses Only</option>
+                                    <option value="25">Under $25</option>
+                                    <option value="50">Under $50</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Submit CTA -->
+                        <div class="text-center pt-3">
+                            <button type="submit" class="btn btn-gradient btn-lg px-5 shadow">
+                                <i class="bi bi-magic me-2"></i> Generate Recommendations
+                            </button>
+                            {% if current_user %}
+                                <div class="form-text mt-2 text-muted">
+                                    <i class="bi bi-info-circle me-1"></i> Your preferences will be saved automatically to your profile.
+                                </div>
+                            {% endif %}
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

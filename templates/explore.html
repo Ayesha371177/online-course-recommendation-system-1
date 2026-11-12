@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Explore Online Courses - CourseMatch{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light">
+    <div class="container">
+
+        <!-- Page Header & Search Bar -->
+        <div class="row align-items-center mb-4">
+            <div class="col-lg-6 mb-3 mb-lg-0">
+                <h2 class="fw-bold mb-1">Explore All Courses</h2>
+                <p class="text-muted small mb-0">Browse through our curated collection of {{ total_courses }} top-rated tech and professional courses.</p>
+            </div>
+            <div class="col-lg-6">
+                <form action="{{ url_for('explore') }}" method="GET" class="d-flex gap-2">
+                    <!-- Preserve existing filters in search form -->
+                    {% if selected_category != 'All' %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+                    {% if selected_difficulty != 'All' %}<input type="hidden" name="difficulty" value="{{ selected_difficulty }}">{% endif %}
+                    {% if selected_platform != 'All' %}<input type="hidden" name="platform" value="{{ selected_platform }}">{% endif %}
+                    {% if selected_min_rating > 0 %}<input type="hidden" name="min_rating" value="{{ selected_min_rating }}">{% endif %}
+                    {% if selected_sort %}<input type="hidden" name="sort_by" value="{{ selected_sort }}">{% endif %}
+
+                    <div class="input-group shadow-sm bg-white rounded-3 overflow-hidden">
+                        <span class="input-group-text bg-white border-0 text-muted ps-3">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" name="q" class="form-control border-0 shadow-none"
+                            placeholder="Search title, skills (e.g. Python, React, AWS)..."
+                            value="{{ search_query }}">
+                        {% if search_query %}
+                            <a href="{{ url_for('explore') }}" class="btn btn-outline-secondary border-0 text-muted" title="Clear search">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </a>
+                        {% endif %}
+                        <button class="btn btn-primary px-4 fw-semibold" type="submit">
+                            Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Sidebar Filter Column -->
+            <div class="col-lg-3">
+                <div class="filter-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0 text-dark">
+                            <i class="bi bi-funnel-fill text-primary me-1"></i> Filters
+                        </h6>
+                        <a href="{{ url_for('explore') }}" class="btn btn-link btn-sm text-decoration-none p-0 text-muted small">
+                            Reset All
+                        </a>
+                    </div>
+
+                    <form action="{{ url_for('explore') }}" method="GET" id="filter-form">
+                        {% if search_query %}
+                            <input type="hidden" name="q" value="{{ search_query }}">
+                        {% endif %}
+
+                        <!-- Category Filter -->
+                        <div class="mb-4">
+                            <label class="filter-title">Category</label>
+                            <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="All" {% if selected_category == 'All' %}selected{% endif %}>All Categories</option>
+                                {% for cat in all_categories %}
+                                    <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Difficulty Filter -->
+                        <div class="mb-4">
+                            <label class="filter-title">Difficulty Level</label>
+                            <div class="d-flex flex-column gap-1">
+                                {% for diff in ['All', 'Beginner', 'Intermediate', 'Advanced'] %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="difficulty" id="diff_{{ diff }}" value="{{ diff }}"
+                                            {% if selected_difficulty == diff %}checked{% endif %} onchange="this.form.submit()">
+                                        <label class="form-check-label small" for="diff_{{ diff }}">
+                                            {{ diff if diff != 'All' else 'All Difficulties' }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Platform Filter -->
+                        <div class="mb-4">
+                            <label class="filter-title">Platform</label>
+                            <select name="platform" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="All" {% if selected_platform == 'All' %}selected{% endif %}>All Platforms</option>
+                                {% for plat in all_platforms %}
+                                    <option value="{{ plat }}" {% if selected_platform == plat %}selected{% endif %}>{{ plat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Minimum Rating Filter -->
+                        <div class="mb-4">
+                            <label class="filter-title">Minimum Rating</label>
+                            <select name="min_rating" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="0" {% if selected_min_rating == 0 %}selected{% endif %}>Any Rating</option>
+                                <option value="4.5" {% if selected_min_rating == 4.5 %}selected{% endif %}>4.5+ Stars</option>
+                                <option value="4.7" {% if selected_min_rating == 4.7 %}selected{% endif %}>4.7+ Stars</option>
+                                <option value="4.8" {% if selected_min_rating == 4.8 %}selected{% endif %}>4.8+ Stars</option>
+                            </select>
+                        </div>
+
+                        <!-- Pricing Filter -->
+                        <div class="mb-3">
+                            <label class="filter-title">Pricing</label>
+                            <select name="max_price" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="" {% if selected_max_price is none %}selected{% endif %}>All Prices</option>
+                                <option value="0" {% if selected_max_price == 0 %}selected{% endif %}>Free Courses</option>
+                                <option value="20" {% if selected_max_price == 20 %}selected{% endif %}>Under $20</option>
+                                <option value="30" {% if selected_max_price == 30 %}selected{% endif %}>Under $30</option>
+                            </select>
+                        </div>
+
+                        <!-- Hidden sort keeper -->
+                        <input type="hidden" name="sort_by" value="{{ selected_sort }}">
+                    </form>
+                </div>
+            </div>
+
+            <!-- Main Course Grid Column -->
+            <div class="col-lg-9">
+
+                <!-- Results Toolbar -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 bg-white p-3 rounded-3 border shadow-sm">
+                    <div class="small text-muted mb-2 mb-sm-0">
+                        Showing <strong>{{ courses|length }}</strong> of <strong>{{ total_courses }}</strong> courses
+                        {% if search_query %}
+                            matching <span class="badge bg-light text-dark border">"{{ search_query }}"</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Sort Dropdown -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="sort_selector" class="small text-muted fw-semibold mb-0">Sort By:</label>
+                        <select id="sort_selector" class="form-select form-select-sm" style="width: auto;"
+                            onchange="window.location.href = updateQueryStringParameter(window.location.href, 'sort_by', this.value)">
+                            <option value="rating_desc" {% if selected_sort == 'rating_desc' %}selected{% endif %}>Highest Rated</option>
+                            <option value="popularity_desc" {% if selected_sort == 'popularity_desc' %}selected{% endif %}>Most Popular</option>
+                            <option value="price_asc" {% if selected_sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                            <option value="price_desc" {% if selected_sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                            <option value="title_asc" {% if selected_sort == 'title_asc' %}selected{% endif %}>Alphabetical (A-Z)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Course Cards Grid -->
+                {% if courses %}
+                    <div class="row g-4">
+                        {% for course in courses %}
+                            <div class="col-md-6 col-xl-4">
+                                <div class="course-card">
+                                    <div class="course-img-wrapper">
+                                        <img src="{{ course.thumbnail_url }}" alt="{{ course.title }}" loading="lazy">
+                                        <span class="course-platform-badge">{{ course.platform }}</span>
+                                        <span class="course-price-badge">
+                                            {% if course.price == 0 %}
+                                                <span class="text-success">Free</span>
+                                            {% else %}
+                                                ${{ "%.2f"|format(course.price) }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="course-card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="course-category">{{ course.category }}</span>
+                                            <span class="difficulty-badge difficulty-{{ course.difficulty|lower }}">{{ course.difficulty }}</span>
+                                        </div>
+                                        <h5 class="course-title">
+                                            <a href="{{ url_for('course_detail', course_id=course.id) }}" class="text-decoration-none text-dark">
+                                                {{ course.title }}
+                                            </a>
+                                        </h5>
+                                        <p class="course-description">{{ course.description }}</p>
+
+                                        <!-- Skills pills -->
+                                        <div class="mb-3">
+                                            {% for s in course.skills.split(',')[:3] %}
+                                                <span class="skill-badge">{{ s.strip() }}</span>
+                                            {% endfor %}
+                                        </div>
+
+                                        <div class="course-meta">
+                                            <div class="rating-stars">
+                                                <i class="bi bi-star-fill"></i>
+                                                <span>{{ course.rating }}</span>
+                                            </div>
+                                            <div>
+                                                <i class="bi bi-people-fill me-1"></i>
+                                                {{ "{:,}".format(course.enrolled_students) }}
+                                            </div>
+                                            <div>
+                                                <i class="bi bi-clock-fill me-1"></i>
+                                                {{ course.duration }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="course-card-footer">
+                                        <a href="{{ course.course_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm">
+                                            View Course <i class="bi bi-box-arrow-up-right ms-1"></i>
+                                        </a>
+
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-light btn-sm text-secondary" title="View details">
+                                                <i class="bi bi-eye"></i> Details
+                                            </a>
+
+                                            {% if current_user %}
+                                                <button type="button" class="btn btn-bookmark ajax-bookmark {% if course.id in saved_course_ids %}active{% endif %}" data-course-id="{{ course.id }}">
+                                                    <i class="bi {% if course.id in saved_course_ids %}bi-bookmark-fill{% else %}bi-bookmark{% endif %} me-1"></i>
+                                                    <span>{% if course.id in saved_course_ids %}Saved{% else %}Save{% endif %}</span>
+                                                </button>
+                                            {% else %}
+                                                <a href="{{ url_for('login') }}" class="btn btn-bookmark" title="Log in to save">
+                                                    <i class="bi bi-bookmark me-1"></i> Save
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if total_pages > 1 %}
+                        <nav class="mt-5" aria-label="Course pagination">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                                    <a class="page-link" href="{{ url_for('explore', page=page-1, q=search_query, category=selected_category, difficulty=selected_difficulty, platform=selected_platform, min_rating=selected_min_rating, sort_by=selected_sort) }}">
+                                        <i class="bi bi-chevron-left"></i> Previous
+                                    </a>
+                                </li>
+                                {% for p in range(1, total_pages + 1) %}
+                                    <li class="page-item {% if p == page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('explore', page=p, q=search_query, category=selected_category, difficulty=selected_difficulty, platform=selected_platform, min_rating=selected_min_rating, sort_by=selected_sort) }}">
+                                            {{ p }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                                <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                                    <a class="page-link" href="{{ url_for('explore', page=page+1, q=search_query, category=selected_category, difficulty=selected_difficulty, platform=selected_platform, min_rating=selected_min_rating, sort_by=selected_sort) }}">
+                                        Next <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    {% endif %}
+
+                {% else %}
+                    <!-- Friendly Empty State -->
+                    <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white my-3">
+                        <div class="text-secondary fs-1 mb-3">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <h4 class="fw-bold">No Courses Found</h4>
+                        <p class="text-muted max-w-500 mx-auto mb-4">
+                            We couldn't find any courses matching your search criteria. Try using different keywords, clearing filters, or exploring all categories.
+                        </p>
+                        <div>
+                            <a href="{{ url_for('explore') }}" class="btn btn-primary px-4">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> Clear All Filters
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function updateQueryStringParameter(uri, key, value) {
+  var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+  var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+  if (uri.match(re)) {
+    return uri.replace(re, '$1' + key + "=" + value + '$2');
+  } else {
+    return uri + separator + key + "=" + value;
+  }
+}
+</script>
+{% endblock %}

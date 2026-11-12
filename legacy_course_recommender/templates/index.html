@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Smart Online Course Recommender{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container position-relative">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7 text-center text-lg-start">
+                <div class="hero-badge">
+                    <i class="bi bi-cpu-fill"></i> Content-Based Machine Learning
+                </div>
+                <h1 class="hero-title mb-3">
+                    Discover Online Courses Tailored to Your Ambitions
+                </h1>
+                <p class="hero-subtitle mb-4">
+                    Tired of endless browsing? Our AI recommendation engine evaluates your skills, preferred platforms, and career targets using TF-IDF Vectorization and Cosine Similarity to find your perfect course.
+                </p>
+
+                <!-- Search and Action Form -->
+                <form action="{{ url_for('explore') }}" method="GET" class="mb-4">
+                    <div class="input-group input-group-lg shadow-lg rounded-pill overflow-hidden bg-white p-1">
+                        <span class="input-group-text bg-transparent border-0 ps-3 text-muted">
+                            <i class="bi bi-search fs-5"></i>
+                        </span>
+                        <input type="text" name="q" class="form-control border-0 shadow-none ps-2" placeholder="Search Python, React, Machine Learning, AWS, Figma..." aria-label="Course Search">
+                        <button class="btn btn-primary rounded-pill px-4 fw-semibold" type="submit">
+                            Search
+                        </button>
+                    </div>
+                </form>
+
+                <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+                    <a href="{{ url_for('recommendations') }}" class="btn btn-gradient btn-lg">
+                        <i class="bi bi-stars me-2"></i> Find My Courses
+                    </a>
+                    <a href="{{ url_for('explore') }}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-grid-3x3-gap-fill me-2"></i> Browse All Courses
+                    </a>
+                </div>
+            </div>
+
+            <!-- Hero Highlights Card -->
+            <div class="col-lg-5 d-none d-lg-block">
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white text-dark p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="p-2 bg-primary-subtle text-primary rounded-3">
+                                <i class="bi bi-lightning-charge-fill fs-5"></i>
+                            </span>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Intelligent Matching</h6>
+                                <small class="text-muted">Multi-feature TF-IDF Engine</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Active</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-bold mb-1">
+                            <span>Deep Learning & Neural Networks</span>
+                            <span class="text-primary">96.8% Match</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 96.8%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-bold mb-1">
+                            <span>Full-Stack Web Development</span>
+                            <span class="text-info">92.4% Match</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 92.4%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between small fw-bold mb-1">
+                            <span>Cloud Computing & DevOps</span>
+                            <span class="text-warning">88.5% Match</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: 88.5%"></div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 text-center">
+                        <p class="small text-muted mb-0">
+                            <i class="bi bi-shield-check text-success me-1"></i> Matches across Coursera, Udemy, and edX catalogs with verified difficulty mapping.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Metrics Banner -->
+<section class="py-4 bg-white border-bottom">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-md-3 col-6">
+                <div class="py-2">
+                    <h3 class="fw-bold text-primary mb-1">{{ stats.total_courses }}+</h3>
+                    <p class="text-muted small mb-0">Curated Courses</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="py-2">
+                    <h3 class="fw-bold text-primary mb-1">{{ categories|length }}+</h3>
+                    <p class="text-muted small mb-0">Specialized Domains</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="py-2">
+                    <h3 class="fw-bold text-primary mb-1">{{ stats.avg_rating }} <i class="bi bi-star-fill text-warning fs-5"></i></h3>
+                    <p class="text-muted small mb-0">Average Course Rating</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="py-2">
+                    <h3 class="fw-bold text-primary mb-1">100%</h3>
+                    <p class="text-muted small mb-0">Transparent ML Engine</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Categories Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <span class="text-primary fw-semibold small text-uppercase">Course Domains</span>
+                <h2 class="fw-bold mb-0">Popular Categories</h2>
+            </div>
+            <a href="{{ url_for('explore') }}" class="btn btn-sm btn-outline-primary">
+                View All <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-3">
+            {% for cat in categories[:8] %}
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-6">
+                    <a href="{{ url_for('explore', category=cat.category) }}" class="category-card">
+                        <div class="category-icon">
+                            {% if 'Web' in cat.category %}
+                                <i class="bi bi-code-slash"></i>
+                            {% elif 'Machine Learning' in cat.category or 'AI' in cat.category %}
+                                <i class="bi bi-robot"></i>
+                            {% elif 'Data' in cat.category %}
+                                <i class="bi bi-bar-chart-line-fill"></i>
+                            {% elif 'Cloud' in cat.category %}
+                                <i class="bi bi-cloud-check-fill"></i>
+                            {% elif 'Cyber' in cat.category %}
+                                <i class="bi bi-shield-lock-fill"></i>
+                            {% elif 'Mobile' in cat.category %}
+                                <i class="bi bi-phone-fill"></i>
+                            {% elif 'Design' in cat.category %}
+                                <i class="bi bi-palette-fill"></i>
+                            {% else %}
+                                <i class="bi bi-briefcase-fill"></i>
+                            {% endif %}
+                        </div>
+                        <h6 class="fw-bold mb-1">{{ cat.category }}</h6>
+                        <span class="small text-muted">{{ cat.count }} Courses Available</span>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Featured Courses Section -->
+<section class="py-5 bg-white border-top border-bottom">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <span class="text-primary fw-semibold small text-uppercase">Top Rated</span>
+                <h2 class="fw-bold mb-0">Featured Courses</h2>
+            </div>
+            <a href="{{ url_for('explore', sort_by='rating_desc') }}" class="btn btn-sm btn-outline-primary">
+                Explore More <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            {% for course in featured_courses %}
+                <div class="col-xl-4 col-md-6">
+                    <div class="course-card">
+                        <div class="course-img-wrapper">
+                            <img src="{{ course.thumbnail_url }}" alt="{{ course.title }}" loading="lazy">
+                            <span class="course-platform-badge">{{ course.platform }}</span>
+                            <span class="course-price-badge">
+                                {% if course.price == 0 %}
+                                    <span class="text-success">Free</span>
+                                {% else %}
+                                    ${{ "%.2f"|format(course.price) }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="course-card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="course-category">{{ course.category }}</span>
+                                <span class="difficulty-badge difficulty-{{ course.difficulty|lower }}">{{ course.difficulty }}</span>
+                            </div>
+                            <h5 class="course-title">
+                                <a href="{{ url_for('course_detail', course_id=course.id) }}" class="text-decoration-none text-dark">
+                                    {{ course.title }}
+                                </a>
+                            </h5>
+                            <p class="course-description">{{ course.description }}</p>
+
+                            <!-- Skills pills -->
+                            <div class="mb-3">
+                                {% for s in course.skills.split(',')[:3] %}
+                                    <span class="skill-badge">{{ s.strip() }}</span>
+                                {% endfor %}
+                            </div>
+
+                            <div class="course-meta">
+                                <div class="rating-stars">
+                                    <i class="bi bi-star-fill"></i>
+                                    <span>{{ course.rating }}</span>
+                                </div>
+                                <div>
+                                    <i class="bi bi-people-fill me-1"></i>
+                                    {{ "{:,}".format(course.enrolled_students) }} learners
+                                </div>
+                                <div>
+                                    <i class="bi bi-clock-fill me-1"></i>
+                                    {{ course.duration }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="course-card-footer">
+                            <a href="{{ course.course_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm">
+                                View Course <i class="bi bi-box-arrow-up-right ms-1"></i>
+                            </a>
+
+                            {% if current_user %}
+                                <button type="button" class="btn btn-bookmark ajax-bookmark {% if course.id in saved_course_ids %}active{% endif %}" data-course-id="{{ course.id }}">
+                                    <i class="bi {% if course.id in saved_course_ids %}bi-bookmark-fill{% else %}bi-bookmark{% endif %} me-1"></i>
+                                    <span>{% if course.id in saved_course_ids %}Saved{% else %}Save{% endif %}</span>
+                                </button>
+                            {% else %}
+                                <a href="{{ url_for('login') }}" class="btn btn-bookmark" title="Log in to save">
+                                    <i class="bi bi-bookmark me-1"></i> Save
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- How Recommendation Algorithm Works -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center max-w-700 mx-auto mb-5">
+            <span class="text-primary fw-semibold small text-uppercase">The Science Under The Hood</span>
+            <h2 class="fw-bold">How Our Recommendation Engine Works</h2>
+            <p class="text-muted">
+                We combine Natural Language Processing with vector mathematics to calculate genuine topical relevance without black boxes or external paid APIs.
+            </p>
+        </div>
+
+        <div class="row g-4 text-center">
+            <div class="col-md-3">
+                <div class="card h-100 border-0 p-4 rounded-4 shadow-sm">
+                    <div class="stat-icon stat-icon-purple mx-auto mb-3">
+                        <i class="bi bi-person-lines-fill"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">1. Profile Synthesis</h5>
+                    <p class="text-muted small mb-0">
+                        Collects your target interests, skill level, desired difficulty, and custom learning aspirations.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card h-100 border-0 p-4 rounded-4 shadow-sm">
+                    <div class="stat-icon stat-icon-blue mx-auto mb-3">
+                        <i class="bi bi-hash"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">2. TF-IDF Vectors</h5>
+                    <p class="text-muted small mb-0">
+                        Builds term frequency & inverse document frequency matrices for combined titles, descriptions, and syllabus skills.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card h-100 border-0 p-4 rounded-4 shadow-sm">
+                    <div class="stat-icon stat-icon-green mx-auto mb-3">
+                        <i class="bi bi-diagram-3-fill"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">3. Cosine Similarity</h5>
+                    <p class="text-muted small mb-0">
+                        Calculates cosine angle distance between user query vector and all course document vectors in multidimensional space.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card h-100 border-0 p-4 rounded-4 shadow-sm">
+                    <div class="stat-icon stat-icon-amber mx-auto mb-3">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">4. Ranked Recommendations</h5>
+                    <p class="text-muted small mb-0">
+                        Applies platform and minimum rating constraints, then outputs top matching courses with transparent relevance scores.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <a href="{{ url_for('recommendations') }}" class="btn btn-gradient btn-lg px-5">
+                <i class="bi bi-magic me-2"></i> Try Recommendation Engine Now
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

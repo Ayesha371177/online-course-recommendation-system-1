@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Personalized Recommendations - CourseMatch{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-light">
+    <div class="container">
+
+        <!-- Top Header & Active Filter Summary -->
+        <div class="d-md-flex justify-content-between align-items-center mb-4">
+            <div>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill fw-semibold mb-2">
+                    <i class="bi bi-cpu me-1"></i> Content-Based Filtering
+                </span>
+                <h2 class="fw-bold mb-1">Recommended for You</h2>
+                <p class="text-muted small mb-0">
+                    Showing top {{ recommendations|length }} personalized matches based on TF-IDF feature similarity.
+                </p>
+            </div>
+            <div class="mt-3 mt-md-0 d-flex gap-2">
+                <a href="{{ url_for('recommendations') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-sliders me-1"></i> Adjust Preferences
+                </a>
+                <a href="{{ url_for('explore') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-grid me-1"></i> All Courses
+                </a>
+            </div>
+        </div>
+
+        <!-- Filter Chips Banner -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="text-muted small fw-semibold me-1">Profile:</span>
+                    {% if selected_interests %}
+                        {% for interest in selected_interests %}
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">
+                                {{ interest }}
+                            </span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="badge bg-light text-muted border rounded-pill">All Topics</span>
+                    {% endif %}
+
+                    {% if selected_skill_level and selected_skill_level != 'All' %}
+                        <span class="badge bg-light text-dark border rounded-pill">
+                            Level: {{ selected_skill_level }}
+                        </span>
+                    {% endif %}
+
+                    {% if selected_platform and selected_platform != 'All' %}
+                        <span class="badge bg-light text-dark border rounded-pill">
+                            Platform: {{ selected_platform }}
+                        </span>
+                    {% endif %}
+
+                    {% if selected_min_rating and selected_min_rating > 0 %}
+                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill">
+                            Min Rating: {{ selected_min_rating }}+
+                        </span>
+                    {% endif %}
+
+                    {% if selected_max_price is not none %}
+                        <span class="badge bg-success-subtle text-dark border border-success-subtle rounded-pill">
+                            Price: {% if selected_max_price == 0 %}Free Only{% else %}Under ${{ selected_max_price }}{% endif %}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- Sort Control -->
+                <form action="{{ url_for('recommendations') }}" method="GET" class="d-flex align-items-center gap-2">
+                    <input type="hidden" name="submitted" value="1">
+                    {% for interest in selected_interests %}
+                        <input type="hidden" name="interests" value="{{ interest }}">
+                    {% endfor %}
+                    <input type="hidden" name="skill_level" value="{{ selected_skill_level }}">
+                    <input type="hidden" name="difficulty" value="{{ selected_difficulty }}">
+                    <input type="hidden" name="preferred_platform" value="{{ selected_platform }}">
+                    <input type="hidden" name="min_rating" value="{{ selected_min_rating }}">
+                    {% if selected_max_price is not none %}
+                        <input type="hidden" name="max_price" value="{{ selected_max_price }}">
+                    {% endif %}
+                    <input type="hidden" name="learning_goals" value="{{ learning_goals }}">
+
+                    <label for="sort_by" class="small text-muted fw-semibold mb-0 text-nowrap">Sort By:</label>
+                    <select name="sort_by" id="sort_by" class="form-select form-select-sm shadow-none" onchange="this.form.submit()">
+                        <option value="relevance" {% if selected_sort == 'relevance' %}selected{% endif %}>Best Relevance Match</option>
+                        <option value="rating" {% if selected_sort == 'rating' %}selected{% endif %}>Highest Rating</option>
+                        <option value="popularity" {% if selected_sort == 'popularity' %}selected{% endif %}>Most Popular</option>
+                        <option value="price_asc" {% if selected_sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price_desc" {% if selected_sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                    </select>
+                </form>
+            </div>
+
+            {% if learning_goals %}
+                <div class="mt-2 pt-2 border-top small text-muted">
+                    <i class="bi bi-chat-left-quote text-primary me-1"></i>
+                    <em>Target Goal: "{{ learning_goals }}"</em>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Algorithm Note -->
+        <div class="alert alert-light border small text-muted mb-4 d-flex align-items-center justify-content-between">
+            <div>
+                <i class="bi bi-info-circle-fill text-primary me-2"></i>
+                <strong>Algorithm Notice:</strong> The match score reflects mathematical similarity (TF-IDF vector distance) between course features and your stated preferences. It does not represent an academic pass probability.
+            </div>
+            <span class="badge bg-secondary-subtle text-secondary d-none d-md-inline-block">Cosine Similarity</span>
+        </div>
+
+        <!-- Recommendations Grid -->
+        {% if recommendations %}
+            <div class="row g-4">
+                {% for course in recommendations %}
+                    <div class="col-xl-4 col-md-6">
+                        <div class="course-card position-relative">
+                            
+                            <!-- Thumbnail Image & Badges -->
+                            <div class="course-img-wrapper">
+                                <img src="{{ course.thumbnail_url }}" alt="{{ course.title }}" loading="lazy">
+                                <span class="course-platform-badge">{{ course.platform }}</span>
+                                <span class="course-price-badge">
+                                    {% if course.price == 0 %}
+                                        <span class="text-success">Free</span>
+                                    {% else %}
+                                        ${{ "%.2f"|format(course.price) }}
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <div class="course-card-body">
+                                
+                                <!-- Match Percentage Badge -->
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="match-badge {% if course.match_percentage >= 85 %}match-high{% elif course.match_percentage >= 65 %}match-medium{% else %}match-low{% endif %}">
+                                        <i class="bi bi-stars"></i> {{ course.match_percentage }}% Match
+                                    </span>
+                                    <span class="difficulty-badge difficulty-{{ course.difficulty|lower }}">
+                                        {{ course.difficulty }}
+                                    </span>
+                                </div>
+
+                                <!-- Explanation tag -->
+                                <div class="match-explanation">
+                                    <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                    {{ course.match_explanation }}
+                                </div>
+
+                                <span class="course-category">{{ course.category }}</span>
+                                <h5 class="course-title">
+                                    <a href="{{ url_for('course_detail', course_id=course.id) }}" class="text-decoration-none text-dark">
+                                        {{ course.title }}
+                                    </a>
+                                </h5>
+
+                                <p class="course-description">{{ course.description }}</p>
+
+                                <!-- Skills tags -->
+                                <div class="mb-3">
+                                    {% for s in course.skills.split(',')[:3] %}
+                                        <span class="skill-badge">{{ s.strip() }}</span>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="course-meta">
+                                    <div class="rating-stars">
+                                        <i class="bi bi-star-fill"></i>
+                                        <span>{{ course.rating }}</span>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-people-fill me-1"></i>
+                                        {{ "{:,}".format(course.enrolled_students) }}
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-clock-fill me-1"></i>
+                                        {{ course.duration }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card Footer Action Buttons -->
+                            <div class="course-card-footer">
+                                <a href="{{ course.course_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm">
+                                    View Course <i class="bi bi-box-arrow-up-right ms-1"></i>
+                                </a>
+
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-light btn-sm text-secondary" title="Course details">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
+
+                                    {% if current_user %}
+                                        <button type="button" class="btn btn-bookmark ajax-bookmark {% if course.id in saved_course_ids %}active{% endif %}" data-course-id="{{ course.id }}">
+                                            <i class="bi {% if course.id in saved_course_ids %}bi-bookmark-fill{% else %}bi-bookmark{% endif %} me-1"></i>
+                                            <span>{% if course.id in saved_course_ids %}Saved{% else %}Save{% endif %}</span>
+                                        </button>
+                                    {% else %}
+                                        <a href="{{ url_for('login') }}" class="btn btn-bookmark" title="Log in to save">
+                                            <i class="bi bi-bookmark me-1"></i> Save
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty state when no matches pass the filter constraints -->
+            <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white my-4">
+                <div class="text-warning fs-1 mb-3">
+                    <i class="bi bi-search"></i>
+                </div>
+                <h4 class="fw-bold">No Courses Matched Your Exact Criteria</h4>
+                <p class="text-muted max-w-500 mx-auto mb-4">
+                    Try broadening your filters (e.g. lowering the minimum rating or selecting 'All Platforms') to discover more matching courses.
+                </p>
+                <div>
+                    <a href="{{ url_for('recommendations') }}" class="btn btn-primary px-4">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Preferences
+                    </a>
+                    <a href="{{ url_for('explore') }}" class="btn btn-outline-secondary px-4 ms-2">
+                        Browse Full Catalog
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

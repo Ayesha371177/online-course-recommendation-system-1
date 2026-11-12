@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found (404) - CourseMatch{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-light text-center" style="min-height: 70vh; display: flex; align-items: center;">
+    <div class="container">
+        <div class="max-w-500 mx-auto">
+            <div class="display-1 fw-bold text-primary mb-2">404</div>
+            <h3 class="fw-bold mb-3">Course or Page Not Found</h3>
+            <p class="text-muted mb-4">
+                The page or course you are looking for may have been moved, deleted, or does not exist.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{{ url_for('home') }}" class="btn btn-primary px-4">
+                    <i class="bi bi-house-door me-1"></i> Back to Home
+                </a>
+                <a href="{{ url_for('explore') }}" class="btn btn-outline-secondary px-4">
+                    <i class="bi bi-compass me-1"></i> Explore Catalog
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Course #{{ course.id }} - Admin{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+                <!-- Navigation link -->
+                <div class="mb-3">
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Admin Dashboard
+                    </a>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                    <div class="border-bottom pb-3 mb-4">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill fw-bold mb-2">
+                            Course #{{ course.id }}
+                        </span>
+                        <h3 class="fw-bold mb-1">Edit Course Record</h3>
+                        <p class="text-muted small mb-0">Changes saved here will immediately update in SQLite and re-index the TF-IDF recommendation matrix.</p>
+                    </div>
+
+                    <form action="{{ url_for('admin_edit_course', course_id=course.id) }}" method="POST">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label small fw-bold">Course Title *</label>
+                                <input type="text" name="title" class="form-control" value="{{ course.title }}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Category *</label>
+                                <input type="text" name="category" class="form-control" value="{{ course.category }}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Platform *</label>
+                                <select name="platform" class="form-select">
+                                    <option value="Coursera" {% if course.platform == 'Coursera' %}selected{% endif %}>Coursera</option>
+                                    <option value="Udemy" {% if course.platform == 'Udemy' %}selected{% endif %}>Udemy</option>
+                                    <option value="edX" {% if course.platform == 'edX' %}selected{% endif %}>edX</option>
+                                    <option value="Other" {% if course.platform not in ['Coursera', 'Udemy', 'edX'] %}selected{% endif %}>Other</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small fw-bold">Description *</label>
+                                <textarea name="description" class="form-control" rows="4" required>{{ course.description }}</textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small fw-bold">Skills Covered (comma-separated) *</label>
+                                <input type="text" name="skills" class="form-control" value="{{ course.skills }}" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Difficulty</label>
+                                <select name="difficulty" class="form-select">
+                                    <option value="Beginner" {% if course.difficulty == 'Beginner' %}selected{% endif %}>Beginner</option>
+                                    <option value="Intermediate" {% if course.difficulty == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+                                    <option value="Advanced" {% if course.difficulty == 'Advanced' %}selected{% endif %}>Advanced</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Rating (0.0 - 5.0)</label>
+                                <input type="number" step="0.1" min="1.0" max="5.0" name="rating" class="form-control" value="{{ course.rating }}">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Price ($)</label>
+                                <input type="number" step="0.01" min="0" name="price" class="form-control" value="{{ course.price }}">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Duration</label>
+                                <input type="text" name="duration" class="form-control" value="{{ course.duration }}">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Enrolled Students</label>
+                                <input type="number" name="enrolled_students" class="form-control" value="{{ course.enrolled_students }}">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small fw-bold">External Course URL *</label>
+                                <input type="url" name="course_url" class="form-control" value="{{ course.course_url }}" required>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small fw-bold">Thumbnail Image URL</label>
+                                <input type="url" name="thumbnail_url" class="form-control" value="{{ course.thumbnail_url }}">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-check2-circle me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
